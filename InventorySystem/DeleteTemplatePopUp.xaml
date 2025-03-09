@@ -1,0 +1,22 @@
+﻿<Window x:Class="InventorySystem.DeleteTemplatePopUp"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:InventorySystem"
+        mc:Ignorable="d"
+        Title="Delete Item" Height="386" Width="646" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True" Background="#FFC5B9B9" >
+    <Grid>
+        <StackPanel Margin="20">
+            <Label Content="CONFIRM DELETE" FontSize="18" FontWeight="Bold"/>
+            <TextBlock Text="Template Name:" Height="17" Width="197" Margin="0 30 0 0"/>
+            <TextBox x:Name="txtTemplateName" Text="Name" Margin="0 0 0 10" Height="29" Width="200" IsEnabled="False" FontSize="16" />
+
+
+
+        </StackPanel>
+
+        <Button Content="Delete" BorderBrush="{x:Null}" Margin="496,256,58,57" Click="Button_Click_1"/>
+        <Button Content="Cancel" BorderBrush="{x:Null}" Margin="382,256,168,57" Click="Button_Click"/>
+    </Grid>
+</Window>
