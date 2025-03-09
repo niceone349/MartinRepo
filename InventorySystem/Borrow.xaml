@@ -17,6 +17,7 @@
                 <Button Content="Home" Height="40" HorizontalContentAlignment="Left" Padding="20,0,0,0" Margin="0 0 0 5" FontSize="20" Background="{x:Null}" FontWeight="Bold" BorderBrush="{x:Null}"/>
                 <Button Content="Product Management" Height="40" HorizontalContentAlignment="Left" Padding="20,0,0,0" Margin="0 0 0 5" FontSize="20" Background="{x:Null}" FontWeight="Bold" BorderBrush="{x:Null}"/>
                 <Button Content="Product Categorization" Height="40" HorizontalContentAlignment="Left" Padding="20,0,0,0" Margin="0 0 0 5" FontSize="20" Background="{x:Null}" FontWeight="Bold" BorderBrush="{x:Null}"/>
+                <Button x:Name="BorrowButton" Content="Borrow Items" Height="40" HorizontalContentAlignment="Left" Padding="20,0,0,0" Margin="0 0 0 5" FontSize="20" Background="{x:Null}" FontWeight="Bold" BorderBrush="{x:Null}" Click="BorrowButton_Click"/>
                 <Button Content="Return Items" Height="40" HorizontalContentAlignment="Left" Padding="20,0,0,0" Margin="0 0 0 5" FontSize="20" Background="{x:Null}" FontWeight="Bold" BorderBrush="{x:Null}"/>
                 <Button Content="Equipment Templates" Height="40" HorizontalContentAlignment="Left" Padding="20,0,0,0" Margin="0 0 0 5" FontSize="20" Background="{x:Null}" FontWeight="Bold" BorderBrush="{x:Null}"/>
                 <Button Content="Activity Log" Height="40" HorizontalContentAlignment="Left" Padding="20,0,0,0" Margin="0 0 0 5" FontSize="20" Background="{x:Null}" FontWeight="Bold" BorderBrush="{x:Null}"/>
@@ -33,16 +34,13 @@
                 <RowDefinition Height="13*"/>
                 <RowDefinition Height="75*"/>
             </Grid.RowDefinitions>
-            <TextBox x:Name="searchEquipmentTextBox" HorizontalAlignment="Left" Margin="561,103,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="372" Height="26" FontSize="16" Grid.RowSpan="2" TextChanged="searchEquipmentTextBox_TextChanged"/>
-            <DataGrid x:Name="tblEquipment" Margin="526,40,30,29" ColumnWidth="*" Grid.Row="1" AutoGenerateColumns="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" IsReadOnly="True"/>
+            <Button Content="Add Item" HorizontalAlignment="Left" Margin="382,79,0,0" VerticalAlignment="Top" Height="61" Width="150" Background="White" FontSize="18" Click="Button_Click" Grid.Row="1"/>
+            <Button Content="Update Item" HorizontalAlignment="Left" Margin="564,79,0,0" VerticalAlignment="Top" Height="61" Width="150" Background="White" FontSize="18" Click="Button_Click_1" Grid.Row="1"/>
+            <Button Content="Delete Item" HorizontalAlignment="Left" Margin="740,79,0,0" VerticalAlignment="Top" Height="61" Width="150" Background="White" FontSize="18" Click="Button_Click_2" Grid.Row="1"/>
+            <TextBox x:Name="txtSearch" HorizontalAlignment="Left" Margin="154,96,0,0" TextWrapping="Wrap" Text="Search Item" VerticalAlignment="Top" Width="207" Height="26" GotFocus="TextBox_GotFocus" TextChanged="txtSearch_TextChanged" LostFocus="txtSearch_LostFocus" FontSize="16" Grid.Row="1"/>
+            <DataGrid x:Name="DataGrid_Inventory" Margin="504,162,69,53" ColumnWidth="*" SelectionChanged="DataGrid_Inventory_SelectionChanged" Grid.Row="1"/>
             <Label Content="Borrow Equipment" HorizontalAlignment="Center" VerticalAlignment="Center" Height="64" Width="329" FontSize="36" Foreground="White" FontWeight="Bold"/>
-            <Image HorizontalAlignment="Left" Height="24" Margin="526,104,0,0" VerticalAlignment="Top" Width="43" Source="/magnifying-glass.png" Grid.RowSpan="2"/>
-            <Button x:Name="addToCartButton" Content="Add Item" HorizontalAlignment="Left" Margin="52,389,0,0" VerticalAlignment="Top" Height="61" Width="177" Background="White" FontSize="18" Click="addToCartButton_Click" Grid.Row="1"/>
-            <DataGrid x:Name="tblBorrow" Margin="52,40,454,211" ColumnWidth="*" Grid.Row="1" CanUserResizeColumns="False" CanUserReorderColumns="False" CanUserResizeRows="False" CanUserAddRows="False"/>
-            <Button x:Name="deleteButton" Content="Delete Item" HorizontalAlignment="Left" Margin="234,389,0,0" VerticalAlignment="Top" Height="61" Width="150" Background="White" FontSize="18" Click="deleteButton_Click" Grid.Row="1"/>
-            <Button x:Name="browseExperimentButton" Content="Browse" HorizontalAlignment="Left" Margin="389,389,0,0" VerticalAlignment="Top" Height="61" Width="123" Background="White" FontSize="18" Click="browseExperimentButton_Click" Grid.Row="1"/>
-            <Button x:Name="checkoutButton" Content="Checkout" HorizontalAlignment="Left" Margin="52,471,0,0" VerticalAlignment="Top" Height="80" Width="460" Background="White" FontSize="18" Click="checkoutButton_Click" Grid.Row="1"/>
-            <Label Content="Equipment Cart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="64" Width="380" FontSize="36" Foreground="White" FontWeight="Bold" Margin="48,84,0,0" Grid.RowSpan="2"/>
+            <Image HorizontalAlignment="Left" Height="24" Margin="121,97,0,0" VerticalAlignment="Top" Width="25" Source="/magnifying-glass.png" Grid.Row="1"/>
         </Grid>
     </Grid>
 </Window>
