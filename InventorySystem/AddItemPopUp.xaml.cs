@@ -1,4 +1,5 @@
-﻿using System;
+﻿ 
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data;
@@ -106,7 +107,7 @@ namespace InventorySystem
         }
         private void LoadCategories()
         {
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
             string query = "SELECT Category_ID, Category_Name FROM Categories";
 
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -132,7 +133,7 @@ namespace InventorySystem
         }
         private async void LoadTemplates()
         {
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
 
             string query = @"
                         SELECT e.Template_ID, e.Template_Name, e.Template_Description, c.Category_Name, e.Template_Category
@@ -197,7 +198,7 @@ namespace InventorySystem
             }
 
 
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
 
             try
             {

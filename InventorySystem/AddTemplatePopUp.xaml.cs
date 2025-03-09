@@ -36,7 +36,7 @@ namespace InventorySystem
         //load categories para lumabas sa combobox
         private void LoadCategories()
         {
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
             string query = "SELECT Category_ID, Category_Name FROM Categories";
 
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -78,7 +78,7 @@ namespace InventorySystem
             }
 
 
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
 
             try
             {

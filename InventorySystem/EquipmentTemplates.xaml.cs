@@ -35,7 +35,7 @@ namespace InventorySystem
         //load window para sa data grid
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
             string query = @"
                     SELECT e.Template_ID, e.Template_Name, e.Template_Description, c.Category_Name    
                     FROM EquipmentTemplates e
@@ -73,7 +73,7 @@ namespace InventorySystem
         //refresh ng datagrid para real time
         private void RefreshDataGrid()
         {
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
             string query = @"
                         SELECT e.Template_ID, e.Template_Name, e.Template_Description, c.Category_Name 
                         FROM EquipmentTemplates e

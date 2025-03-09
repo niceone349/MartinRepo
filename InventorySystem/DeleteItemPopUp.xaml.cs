@@ -20,7 +20,7 @@ namespace InventorySystem
     /// </summary>
     public partial class DeleteItemPopUp : Window
     {
-        private string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+        private string connectionString = Server.ConnString;
         public int ItemId { get; private set; }
         private int currentQuantity;
 

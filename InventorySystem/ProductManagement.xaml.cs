@@ -24,7 +24,7 @@ namespace InventorySystem
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
             string query = @"
                     SELECT a.Item_ID, a.Item_Name, a.Item_Description, c.Category_Name, 
                            a.Item_Quantity, a.Item_Low_Indicator
@@ -100,7 +100,7 @@ namespace InventorySystem
         //pang refresh nung data grid
         private void RefreshDataGrid()
         {
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
             string query = @"
                     SELECT a.Item_ID, a.Item_Name, a.Item_Description, c.Category_Name, 
                            a.Item_Quantity, a.Item_Low_Indicator
@@ -222,6 +222,11 @@ namespace InventorySystem
             {
                 txtSearch.Text = "Search Item";
             }
+        }
+
+        private void BorrowButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

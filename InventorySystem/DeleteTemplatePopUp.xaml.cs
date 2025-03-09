@@ -36,7 +36,7 @@ namespace InventorySystem
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
 
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
             string deleteQuery = "DELETE FROM EquipmentTemplates WHERE Template_ID = @TemplateID";
 
             try

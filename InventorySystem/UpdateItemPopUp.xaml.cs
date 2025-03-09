@@ -52,7 +52,7 @@ namespace InventorySystem
                 return;
             }
 
-            string connectionString = "Server=Niceone349\\SQLDATABASE;Database=Inventory System;Integrated Security=True;";
+            string connectionString = Server.ConnString;
 
             try
             {
