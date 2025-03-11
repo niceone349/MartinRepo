@@ -63,6 +63,24 @@ namespace InventorySystem
             LoadEquipmentData();
         }
 
+        private int GenerateActivityID()
+        {
+            DateTime baseDate = new DateTime(2020, 1, 1);
+            // Total seconds since January 1, 2020.
+            int activityID = (int)(DateTime.Now - baseDate).TotalSeconds;
+            return activityID;
+        }
+
+        private int GetNextBorrowedID(SqlConnection conn)
+        {
+            string query = "SELECT ISNULL(MAX(Borrowed_ID), 0) + 1 FROM BorrowedItems";
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+
         private void deleteButton_Click(object sender, RoutedEventArgs e)
         {
             //Checks if there is a selected row
@@ -93,26 +111,38 @@ namespace InventorySystem
                 {
                     conn.Open();
 
-
-                    //HardCode for Borrower Sample kasi d pa naimplement HAHAHA
+                    // Hardcoded sample values
                     string borrowerName = "Jon Fukiko";
-                    int activityID = 12345;
-                    int borrowedID = 10;
                     DateTime borrowDate = DateTime.Now;
-                    // Iterate over each row in the cartDataTable.
+                    // Generate one Activity_ID for the entire transaction.
+                    int activityID = GenerateActivityID();
+
+                    // Insert one ActivityLog record for the transaction.
+                    string insertActivityQuery = @"
+                INSERT INTO ActivityLog (Activity_ID, Action)
+                VALUES (@activityID, @action)";
+                    using (SqlCommand activityCmd = new SqlCommand(insertActivityQuery, conn))
+                    {
+                        activityCmd.Parameters.AddWithValue("@activityID", activityID);
+                        activityCmd.Parameters.AddWithValue("@action", "BORROW EQUIPMENT");
+                        activityCmd.ExecuteNonQuery();
+                    }
+
+                    // Get the next available Borrowed_ID
+                    int nextBorrowedID = GetNextBorrowedID(conn);
+
+                    // Iterate over each row in the cart.
                     foreach (DataRow row in cartDataTable.Rows)
                     {
                         int itemID = Convert.ToInt32(row["Item_ID"]);
-                        int requestedQuantity = Convert.ToInt32(row["Item_Quantity"]);
 
-                        //Exception Handling if requestedQuantity isn't a number or is less than 0
-                        if (!int.TryParse(row["Item_Quantity"].ToString(), out requestedQuantity))
+                        // Validate and parse quantity.
+                        if (!int.TryParse(row["Item_Quantity"].ToString(), out int requestedQuantity))
                         {
                             MessageBox.Show("Invalid quantity for item: " + row["Item_Name"] +
                                 ". Please enter a numeric value.", "Quantity Error", MessageBoxButton.OK, MessageBoxImage.Error);
                             return;
                         }
-
                         if (requestedQuantity < 0)
                         {
                             MessageBox.Show("Quantity for item: " + row["Item_Name"] + " cannot be negative.",
@@ -120,63 +150,61 @@ namespace InventorySystem
                             return;
                         }
 
-                        // Query the database for the current available stock for this item.
+                        // Check current stock.
                         string selectQuery = "SELECT Item_Quantity FROM AvailableItems WHERE Item_ID = @itemID";
-                        SqlCommand selectCmd = new SqlCommand(selectQuery, conn);
-                        selectCmd.Parameters.AddWithValue("@itemID", itemID);
-
-                        object result = selectCmd.ExecuteScalar();
-                        if (result != null)
+                        using (SqlCommand selectCmd = new SqlCommand(selectQuery, conn))
                         {
-                            int currentStock = Convert.ToInt32(result);
-                            // If the requested quantity is more than the current stock, show an error and exit.
-                            if (requestedQuantity > currentStock)
+                            selectCmd.Parameters.AddWithValue("@itemID", itemID);
+                            object result = selectCmd.ExecuteScalar();
+                            if (result != null)
                             {
-                                MessageBox.Show("Insufficient stock for item: " + row["Item_Name"] +
-                                    ". Requested: " + requestedQuantity + ", Available: " + currentStock,
-                                    "Stock Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                int currentStock = Convert.ToInt32(result);
+                                if (requestedQuantity > currentStock)
+                                {
+                                    MessageBox.Show("Insufficient stock for item: " + row["Item_Name"] +
+                                        ". Requested: " + requestedQuantity + ", Available: " + currentStock,
+                                        "Stock Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                    return;
+                                }
+                                else
+                                {
+                                    int finalStock = currentStock - requestedQuantity;
+                                    string updateQuery = "UPDATE AvailableItems SET Item_Quantity = @finalStock WHERE Item_ID = @itemID";
+                                    using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn))
+                                    {
+                                        updateCmd.Parameters.AddWithValue("@finalStock", finalStock);
+                                        updateCmd.Parameters.AddWithValue("@itemID", itemID);
+                                        updateCmd.ExecuteNonQuery();
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("Item " + row["Item_Name"] + " not found in inventory.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                                 return;
                             }
-
-
-                            //If stock is enough
-                            if(requestedQuantity <= currentStock)
-                            {
-                                int finalStock = currentStock - requestedQuantity;
-                                string updateQuery = "UPDATE AvailableItems SET Item_Quantity = @finalStock WHERE Item_ID = @itemID";
-                                SqlCommand updateCmd = new SqlCommand(updateQuery, conn);
-                                updateCmd.Parameters.AddWithValue("@finalStock", finalStock);
-                                updateCmd.Parameters.AddWithValue("@itemID", itemID);
-                                updateCmd.ExecuteNonQuery();
-                            }
                         }
-                        else
-                        {
-                            MessageBox.Show("Item " + row["Item_Name"] + " not found in inventory.",
-                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
-                        }
-                        /*
-                        //Insert Info to Borrowed Table
-                        //NEEDS WORK. ANDAMI CONFLICT NAKAKAINIS
+
+                        // Use the current nextBorrowedID, then increment for the next row.
+                        int currentBorrowedID = nextBorrowedID;
+                        nextBorrowedID++;
+
+                        // Insert into BorrowedItems using the generated Borrowed_ID.
                         string insertQuery = @"
-                        INSERT INTO BorrowedItems (Borrowed_ID, Borrower_Name, Item_ID, Borrow_Transaction_Date, Activity_ID) 
-                        VALUES (@borrowedID, @borrowerName, @itemID, @transactionDate, @activityID)";
+                    INSERT INTO BorrowedItems (Borrowed_ID, Borrower_Name, Item_ID, Borrow_Transaction_Date, Activity_ID) 
+                    VALUES (@borrowedID, @borrowerName, @itemID, @transactionDate, @activityID)";
                         using (SqlCommand insertCmd = new SqlCommand(insertQuery, conn))
                         {
-                            insertCmd.Parameters.AddWithValue("@borrowedID", borrowedID);
+                            insertCmd.Parameters.AddWithValue("@borrowedID", currentBorrowedID);
                             insertCmd.Parameters.AddWithValue("@borrowerName", borrowerName);
                             insertCmd.Parameters.AddWithValue("@itemID", itemID);
                             insertCmd.Parameters.AddWithValue("@transactionDate", borrowDate);
                             insertCmd.Parameters.AddWithValue("@activityID", activityID);
                             insertCmd.ExecuteNonQuery();
                         }
-                        */
-
                     }
-               
 
-                    // If all rows pass the check, proceed with the checkout process.
                     MessageBox.Show("Checkout successful!");
                     cartDataTable.Rows.Clear();
                     LoadEquipmentData();
@@ -187,6 +215,8 @@ namespace InventorySystem
                 }
             }
         }
+
+
 
 
         private void browseExperimentButton_Click(object sender, RoutedEventArgs e)
@@ -206,12 +236,24 @@ namespace InventorySystem
             DataRowView selectedRowView = tblEquipment.SelectedItem as DataRowView;
             if(selectedRowView != null)
             {
-                DataRow newRow = cartDataTable.NewRow();
-                newRow["Item_ID"] = selectedRowView["Item_ID"];
-                newRow["Item_Name"] = selectedRowView["Item_Name"];
-                newRow["Item_Description"] = selectedRowView["Item_Description"];
-                newRow["Item_Quantity"] = selectedRowView["Item_Quantity"];
-                cartDataTable.Rows.Add(newRow);
+                int itemID = Convert.ToInt32(selectedRowView["Item_ID"]);
+                bool exists = cartDataTable.AsEnumerable().Any(row => row.Field<int>("Item_ID") == itemID);
+
+                //Checks if item is already in the cart.
+                if (exists)
+                {
+                    MessageBox.Show("Item is already in the cart.", "Duplicate Item", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    DataRow newRow = cartDataTable.NewRow();
+                    newRow["Item_ID"] = selectedRowView["Item_ID"];
+                    newRow["Item_Name"] = selectedRowView["Item_Name"];
+                    newRow["Item_Description"] = selectedRowView["Item_Description"];
+                    newRow["Item_Quantity"] = selectedRowView["Item_Quantity"];
+                    cartDataTable.Rows.Add(newRow);
+                }
+                
             }
             
         }
