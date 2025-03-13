@@ -43,6 +43,18 @@
             <Button x:Name="browseExperimentButton" Content="Browse" HorizontalAlignment="Left" Margin="389,389,0,0" VerticalAlignment="Top" Height="61" Width="123" Background="White" FontSize="18" Click="browseExperimentButton_Click" Grid.Row="1"/>
             <Button x:Name="checkoutButton" Content="Checkout" HorizontalAlignment="Left" Margin="52,471,0,0" VerticalAlignment="Top" Height="80" Width="460" Background="White" FontSize="18" Click="checkoutButton_Click" Grid.Row="1"/>
             <Label Content="Equipment Cart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="64" Width="380" FontSize="36" Foreground="White" FontWeight="Bold" Margin="48,84,0,0" Grid.RowSpan="2"/>
+            <StackPanel x:Name="experimentPanel" Grid.Row="1" Margin="526,40,30,29" Background="White">
+                <Button x:Name="returnButton" Content="Return" Width="64" Height="30" Margin="-320,15,0,0" Click="returnButton_Click"/>
+                <ComboBox x:Name="experimentComboBox" Width="200" Margin="0,-30,0,0" SelectionChanged="experimentComboBox_SelectionChanged" DisplayMemberPath="Experiment_Name"/>
+                <Button x:Name="experimentAddToCartButton" Content="Add To Cart" Width="80" Height="30" Margin="320,-30,0,0" Click="experimentAddToCartButton_Click"/>
+                <DataGrid x:Name="tblExperiment" Margin="26,20,30,29" ColumnWidth="*" Grid.Row="1" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" IsReadOnly="True" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Item ID" Binding="{Binding Item_Name}"/>
+                        <DataGridTextColumn Header="Quantity Required" Binding="{Binding Quantity_Required}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
         </Grid>
+        <Grid Grid.Column="1"/>
     </Grid>
 </Window>

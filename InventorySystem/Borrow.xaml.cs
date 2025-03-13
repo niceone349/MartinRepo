@@ -23,6 +23,8 @@ namespace InventorySystem
     {
         private DataTable equipmentDataTable;
         private DataTable cartDataTable;
+        private DataTable experimentDataTable;
+
         public Borrow()
         {
             InitializeComponent();
@@ -57,6 +59,43 @@ namespace InventorySystem
                 }
             }
         }
+
+        private void LoadExperimentData(int id)
+        {
+            string connString = Server.ConnString;
+            string query = @"
+        SELECT 
+            CAST(e.Item_ID AS INT) AS Item_ID, 
+            e.Item_Name, 
+            e.Item_Description,
+            ei.Quantity_Required
+        FROM ExperimentItems ei
+        JOIN AvailableItems e ON ei.Item_ID = e.Item_ID
+        WHERE ei.Experiment_ID = @exp_id
+
+";
+
+            using (SqlConnection conn = new SqlConnection(connString))
+            {
+                try
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@exp_id", id);
+                        SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                        experimentDataTable = new DataTable();
+                        adapter.Fill(experimentDataTable);
+                        tblExperiment.ItemsSource = experimentDataTable.DefaultView;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error loading experiment data: " + ex.Message);
+                }
+            }
+        }
+
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -112,7 +151,7 @@ namespace InventorySystem
                     conn.Open();
 
                     // Hardcoded sample values
-                    string borrowerName = "Jon Fukiko";
+                    string borrowerName = "Jon";
                     DateTime borrowDate = DateTime.Now;
                     // Generate one Activity_ID for the entire transaction.
                     int activityID = GenerateActivityID();
@@ -221,40 +260,68 @@ namespace InventorySystem
 
         private void browseExperimentButton_Click(object sender, RoutedEventArgs e)
         {
+            experimentPanel.Visibility = Visibility.Visible;
+            string connString = Server.ConnString;
+            string query = "SELECT * FROM Experiments";
+
+            using (SqlConnection conn = new SqlConnection(connString))
+            {
+                try
+                {
+                    conn.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
+                    DataSet ds = new DataSet();
+                    adapter.Fill(ds, "t");
+                    experimentComboBox.ItemsSource = ds.Tables["t"].DefaultView;
+                    experimentComboBox.DisplayMemberPath = "Experiment_Name";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error loading experiments: " + ex.Message);
+                }
+            }
 
         }
 
         private void addToCartButton_Click(object sender, RoutedEventArgs e)
         {
-            //Checks if there is a selected row
-            if(tblEquipment.SelectedItem == null)
+            try
             {
-                MessageBox.Show("Please select an item to add to cart.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+                //Checks if there is a selected row
+                if (tblEquipment.SelectedItem == null)
+                {
+                    MessageBox.Show("Please select an item to add to cart.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
-            DataRowView selectedRowView = tblEquipment.SelectedItem as DataRowView;
-            if(selectedRowView != null)
+                DataRowView selectedRowView = tblEquipment.SelectedItem as DataRowView;
+                if (selectedRowView != null)
+                {
+                    int itemID = Convert.ToInt32(selectedRowView["Item_ID"]);
+                    bool exists = cartDataTable.AsEnumerable().Any(row => row.Field<int>("Item_ID") == itemID);
+
+                    //Checks if item is already in the cart.
+                    if (exists)
+                    {
+                        MessageBox.Show("Item is already in the cart.", "Duplicate Item", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        DataRow newRow = cartDataTable.NewRow();
+                        newRow["Item_ID"] = selectedRowView["Item_ID"];
+                        newRow["Item_Name"] = selectedRowView["Item_Name"];
+                        newRow["Item_Description"] = selectedRowView["Item_Description"];
+                        newRow["Item_Quantity"] = selectedRowView["Item_Quantity"];
+                        cartDataTable.Rows.Add(newRow);
+                    }
+
+                }
+            }
+            catch(Exception ex)
             {
-                int itemID = Convert.ToInt32(selectedRowView["Item_ID"]);
-                bool exists = cartDataTable.AsEnumerable().Any(row => row.Field<int>("Item_ID") == itemID);
-
-                //Checks if item is already in the cart.
-                if (exists)
-                {
-                    MessageBox.Show("Item is already in the cart.", "Duplicate Item", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    DataRow newRow = cartDataTable.NewRow();
-                    newRow["Item_ID"] = selectedRowView["Item_ID"];
-                    newRow["Item_Name"] = selectedRowView["Item_Name"];
-                    newRow["Item_Description"] = selectedRowView["Item_Description"];
-                    newRow["Item_Quantity"] = selectedRowView["Item_Quantity"];
-                    cartDataTable.Rows.Add(newRow);
-                }
-                
+                MessageBox.Show("Error in addToCart: " + ex.Message);
             }
+            
             
         }
 
@@ -275,6 +342,56 @@ namespace InventorySystem
                 }
                 tblEquipment.ItemsSource = dv;
             }
+        }
+
+        private void returnButton_Click(object sender, RoutedEventArgs e)
+        {
+            experimentPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void experimentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            DataRowView selectedRow = experimentComboBox.SelectedItem as DataRowView;
+            if(experimentComboBox.SelectedItem == null){
+                return;
+            }
+
+            int experiment_id = Convert.ToInt32(selectedRow["Experiment_ID"]);
+            LoadExperimentData(experiment_id);
+
+        }
+
+        private void experimentAddToCartButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Ensure that experimentDataTable is loaded
+            if (experimentDataTable == null || experimentDataTable.Rows.Count == 0)
+            {
+                MessageBox.Show("No experiment items to add.");
+                return;
+            }
+
+            // Loop through each row in the experimentDataTable
+            foreach (DataRow row in experimentDataTable.Rows)
+            {
+                int itemID = Convert.ToInt32(row["Item_ID"]);
+
+                // Optional: Check if the item is already in the cart to avoid duplicates.
+                bool exists = cartDataTable.AsEnumerable().Any(r => r.Field<int>("Item_ID") == itemID);
+                if (exists)
+                {
+                    continue; // Skip duplicate items.
+                }
+
+                DataRow newRow = cartDataTable.NewRow();
+                newRow["Item_ID"] = row["Item_ID"];
+                newRow["Item_Name"] = row["Item_Name"];
+                newRow["Item_Description"] = row["Item_Description"];
+                newRow["Item_Quantity"] = row["Quantity_Required"];
+
+                cartDataTable.Rows.Add(newRow);
+            }
+
+            MessageBox.Show("All experiment items have been added to the cart.");
         }
     }
 }
