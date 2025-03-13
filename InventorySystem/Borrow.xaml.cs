@@ -64,16 +64,14 @@ namespace InventorySystem
         {
             string connString = Server.ConnString;
             string query = @"
-        SELECT 
-            CAST(e.Item_ID AS INT) AS Item_ID, 
-            e.Item_Name, 
-            e.Item_Description,
-            ei.Quantity_Required
-        FROM ExperimentItems ei
-        JOIN AvailableItems e ON ei.Item_ID = e.Item_ID
-        WHERE ei.Experiment_ID = @exp_id
-
-";
+            SELECT 
+                CAST(e.Item_ID AS INT) AS Item_ID, 
+                e.Item_Name, 
+                e.Item_Description, 
+                ei.Quantity_Required
+            FROM ExperimentItems ei
+            JOIN AvailableItems e ON ei.Item_ID = e.Item_ID
+            WHERE ei.Experiment_ID = @exp_id";
 
             using (SqlConnection conn = new SqlConnection(connString))
             {
@@ -95,6 +93,7 @@ namespace InventorySystem
                 }
             }
         }
+
 
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -150,16 +149,14 @@ namespace InventorySystem
                 {
                     conn.Open();
 
-                    // Hardcoded sample values
-                    string borrowerName = "Jon";
+                    string borrowerName = "Jon"; // Replace with actual user input
                     DateTime borrowDate = DateTime.Now;
-                    // Generate one Activity_ID for the entire transaction.
                     int activityID = GenerateActivityID();
 
-                    // Insert one ActivityLog record for the transaction.
+                    // Insert into ActivityLog
                     string insertActivityQuery = @"
-                INSERT INTO ActivityLog (Activity_ID, Action)
-                VALUES (@activityID, @action)";
+            INSERT INTO ActivityLog (Activity_ID, Action)
+            VALUES (@activityID, @action)";
                     using (SqlCommand activityCmd = new SqlCommand(insertActivityQuery, conn))
                     {
                         activityCmd.Parameters.AddWithValue("@activityID", activityID);
@@ -170,26 +167,36 @@ namespace InventorySystem
                     // Get the next available Borrowed_ID
                     int nextBorrowedID = GetNextBorrowedID(conn);
 
-                    // Iterate over each row in the cart.
                     foreach (DataRow row in cartDataTable.Rows)
                     {
                         int itemID = Convert.ToInt32(row["Item_ID"]);
+                        string itemName = row["Item_Name"].ToString();
+                        string itemDescription = row["Item_Description"].ToString();
+                        int requestedQuantity = Convert.ToInt32(row["Item_Quantity"]);
 
-                        // Validate and parse quantity.
-                        if (!int.TryParse(row["Item_Quantity"].ToString(), out int requestedQuantity))
+                        // Retrieve Category_ID and Item_Low_Indicator from AvailableItems
+                        string itemQuery = "SELECT Category_ID, Item_Low_Indicator FROM AvailableItems WHERE Item_ID = @itemID";
+                        int categoryID;
+                        bool itemLowIndicator;
+                        using (SqlCommand itemCmd = new SqlCommand(itemQuery, conn))
                         {
-                            MessageBox.Show("Invalid quantity for item: " + row["Item_Name"] +
-                                ". Please enter a numeric value.", "Quantity Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
-                        }
-                        if (requestedQuantity < 0)
-                        {
-                            MessageBox.Show("Quantity for item: " + row["Item_Name"] + " cannot be negative.",
-                                "Quantity Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
+                            itemCmd.Parameters.AddWithValue("@itemID", itemID);
+                            using (SqlDataReader reader = itemCmd.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    categoryID = reader.GetInt32(0);
+                                    itemLowIndicator = reader.GetInt32(1) == 1;
+                                }
+                                else
+                                {
+                                    MessageBox.Show($"Item {itemName} not found in inventory.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                    return;
+                                }
+                            }
                         }
 
-                        // Check current stock.
+                        // Check current stock
                         string selectQuery = "SELECT Item_Quantity FROM AvailableItems WHERE Item_ID = @itemID";
                         using (SqlCommand selectCmd = new SqlCommand(selectQuery, conn))
                         {
@@ -200,8 +207,7 @@ namespace InventorySystem
                                 int currentStock = Convert.ToInt32(result);
                                 if (requestedQuantity > currentStock)
                                 {
-                                    MessageBox.Show("Insufficient stock for item: " + row["Item_Name"] +
-                                        ". Requested: " + requestedQuantity + ", Available: " + currentStock,
+                                    MessageBox.Show($"Insufficient stock for {itemName}. Requested: {requestedQuantity}, Available: {currentStock}",
                                         "Stock Error", MessageBoxButton.OK, MessageBoxImage.Error);
                                     return;
                                 }
@@ -219,27 +225,29 @@ namespace InventorySystem
                             }
                             else
                             {
-                                MessageBox.Show("Item " + row["Item_Name"] + " not found in inventory.",
-                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                MessageBox.Show($"Item {itemName} not found in inventory.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                                 return;
                             }
                         }
 
-                        // Use the current nextBorrowedID, then increment for the next row.
-                        int currentBorrowedID = nextBorrowedID;
-                        nextBorrowedID++;
-
-                        // Insert into BorrowedItems using the generated Borrowed_ID.
+                        // Insert into BorrowedItems
                         string insertQuery = @"
-                    INSERT INTO BorrowedItems (Borrowed_ID, Borrower_Name, Item_ID, Borrow_Transaction_Date, Activity_ID) 
-                    VALUES (@borrowedID, @borrowerName, @itemID, @transactionDate, @activityID)";
+                INSERT INTO BorrowedItems 
+                (Borrowed_ID, Borrower_Name, Item_ID, Borrow_Transaction_Date, Activity_ID, Item_Name, Item_Description, Borrowed_Quantity, Category_ID, Item_Low_Indicator) 
+                VALUES 
+                (@borrowedID, @borrowerName, @itemID, @transactionDate, @activityID, @itemName, @itemDescription, @borrowedQuantity, @categoryID, @itemLowIndicator)";
                         using (SqlCommand insertCmd = new SqlCommand(insertQuery, conn))
                         {
-                            insertCmd.Parameters.AddWithValue("@borrowedID", currentBorrowedID);
+                            insertCmd.Parameters.AddWithValue("@borrowedID", nextBorrowedID++);
                             insertCmd.Parameters.AddWithValue("@borrowerName", borrowerName);
                             insertCmd.Parameters.AddWithValue("@itemID", itemID);
                             insertCmd.Parameters.AddWithValue("@transactionDate", borrowDate);
                             insertCmd.Parameters.AddWithValue("@activityID", activityID);
+                            insertCmd.Parameters.AddWithValue("@itemName", itemName);
+                            insertCmd.Parameters.AddWithValue("@itemDescription", itemDescription);
+                            insertCmd.Parameters.AddWithValue("@borrowedQuantity", requestedQuantity);
+                            insertCmd.Parameters.AddWithValue("@categoryID", categoryID);
+                            insertCmd.Parameters.AddWithValue("@itemLowIndicator", itemLowIndicator);
                             insertCmd.ExecuteNonQuery();
                         }
                     }
@@ -254,8 +262,6 @@ namespace InventorySystem
                 }
             }
         }
-
-
 
 
         private void browseExperimentButton_Click(object sender, RoutedEventArgs e)
@@ -374,6 +380,9 @@ namespace InventorySystem
             foreach (DataRow row in experimentDataTable.Rows)
             {
                 int itemID = Convert.ToInt32(row["Item_ID"]);
+                string itemName = row["Item_Name"].ToString();
+                string itemDescription = row["Item_Description"].ToString();
+                int quantityRequired = Convert.ToInt32(row["Quantity_Required"]);
 
                 // Optional: Check if the item is already in the cart to avoid duplicates.
                 bool exists = cartDataTable.AsEnumerable().Any(r => r.Field<int>("Item_ID") == itemID);
@@ -383,15 +392,16 @@ namespace InventorySystem
                 }
 
                 DataRow newRow = cartDataTable.NewRow();
-                newRow["Item_ID"] = row["Item_ID"];
-                newRow["Item_Name"] = row["Item_Name"];
-                newRow["Item_Description"] = row["Item_Description"];
-                newRow["Item_Quantity"] = row["Quantity_Required"];
+                newRow["Item_ID"] = itemID;
+                newRow["Item_Name"] = itemName;
+                newRow["Item_Description"] = itemDescription;
+                newRow["Item_Quantity"] = quantityRequired;
 
                 cartDataTable.Rows.Add(newRow);
             }
 
             MessageBox.Show("All experiment items have been added to the cart.");
         }
+
     }
 }
