@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -60,7 +60,14 @@ namespace InventorySystem
 
                     if (deleteAll || quantityToDelete >= currentQuantity)
                     {
-                        query = "DELETE FROM AvailableItems WHERE Item_ID = @ItemId";
+                        query = @"
+                            BEGIN TRANSACTION;
+
+                            DELETE FROM ExperimentItems WHERE Item_ID = @ItemId;
+                            DELETE FROM AvailableItems WHERE Item_ID = @ItemId;
+                            
+                            COMMIT TRANSACTION;
+                        ";
                     }
                     else
                     {

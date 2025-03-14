@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InventorySystem"
         mc:Ignorable="d"
-            Title="Update Item" Height="386" Width="646" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True" Background="#FFC5B9B9">
+            Title="Update Item" Height="386" Width="646" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True" Background="#FFC5B9B9" Loaded="Window_Loaded">
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -23,6 +23,9 @@
 
                     <TextBlock Text="Low Stock Indicator:"/>
                     <TextBox x:Name="txtLowStock" Margin="0 0 0 10" Text="Low Stock" Height="25" />
+
+                    <TextBlock Text="Category:"/>
+                    <ComboBox x:Name="cmbCategory" Margin="0 0 0 10"/>
 
 
                 </StackPanel>

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -12,20 +12,20 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace InventorySystem
 {
     /// <summary>
-    /// Interaction logic for EquipmentTemplates.xaml
+    /// Interaction logic for EquipmentTemplate.xaml
     /// </summary>
-    public partial class EquipmentTemplates : Window
+    public partial class EquipmentTemplate : Page
     {
-        public EquipmentTemplates()
+        public EquipmentTemplate()
         {
             InitializeComponent();
         }
-        //add templatessss
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             AddTemplatePopUp addTemplateWindow = new AddTemplatePopUp();
@@ -33,7 +33,7 @@ namespace InventorySystem
             addTemplateWindow.ShowDialog();
         }
         //load window para sa data grid
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             string connectionString = Server.ConnString;
             string query = @"
@@ -69,7 +69,9 @@ namespace InventorySystem
                     MessageBox.Show("Error: " + ex.Message);
                 }
             }
+
         }
+
         //refresh ng datagrid para real time
         private void RefreshDataGrid()
         {
@@ -140,7 +142,7 @@ namespace InventorySystem
 
                 int templateId = selectedRow["Template_ID"] != DBNull.Value ? Convert.ToInt32(selectedRow["Template_ID"]) : 0;
                 string templateName = selectedRow["Template_Name"]?.ToString() ?? "Unknown";
-                string templateCategory = selectedRow["Category_Name"] != DBNull.Value? selectedRow["Category_Name"].ToString() : "No Category"; 
+                string templateCategory = selectedRow["Category_Name"] != DBNull.Value ? selectedRow["Category_Name"].ToString() : "No Category";
                 string description = selectedRow["Template_Description"]?.ToString() ?? "No Description";
 
                 UpdateTemplatePopUp updatetemplateWindow = new UpdateTemplatePopUp(templateId, templateName, templateCategory, description);
@@ -149,10 +151,10 @@ namespace InventorySystem
             }
             else
             {
-                MessageBox.Show("Please select an item to update.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select an template to update.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
-        //delete item button
+        //delete template button
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
             if (DataGrid_Inventory.SelectedItem is DataRowView selectedRow)
@@ -160,7 +162,7 @@ namespace InventorySystem
 
                 int templateId = selectedRow["Template_ID"] != DBNull.Value ? Convert.ToInt32(selectedRow["Template_ID"]) : 0;
                 string templateName = selectedRow["Template_Name"]?.ToString() ?? "Unknown";
-   
+
 
                 DeleteTemplatePopUp deletetemplateWindow = new DeleteTemplatePopUp(templateId, templateName);
                 deletetemplateWindow.TemplateDeleted += RefreshDataGrid;
@@ -168,7 +170,7 @@ namespace InventorySystem
             }
             else
             {
-                MessageBox.Show("Please select an item to delete.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select an template to delete.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
         //paglabas lang ulit sa textblock
@@ -188,22 +190,28 @@ namespace InventorySystem
         {
             string searchText = txtSearch.Text.Trim().ToLower();
 
-            if (string.IsNullOrWhiteSpace(searchText) || searchText == "search item")
+            if (string.IsNullOrWhiteSpace(searchText) || searchText == "search template")
             {
                 RefreshDataGrid();
                 return;
             }
-
-            DataView dv = (DataGrid_Inventory.ItemsSource as DataView);
-            if (dv != null)
+            if (DataGrid_Inventory != null && DataGrid_Inventory.ItemsSource != null)
             {
-                dv.RowFilter = $"Template_Name LIKE '%{searchText}%' OR Template_Description LIKE '%{searchText}%'";
+                DataView dv = DataGrid_Inventory.ItemsSource as DataView;
+                if (dv != null)
+                {
+                    dv.RowFilter = $"Template_Name LIKE '%{searchText}%'";
+                }
+            }
+            else
+            {
+                MessageBox.Show("Inventory data is not loaded.");
             }
         }
         //searchbox click
         private void txtSearch_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (txtSearch.Text == "Search Item")
+            if (txtSearch.Text == "Search Template")
             {
                 txtSearch.Clear();
             }
@@ -213,8 +221,9 @@ namespace InventorySystem
         {
             if (string.IsNullOrWhiteSpace(txtSearch.Text))
             {
-                txtSearch.Text = "Search Item";
+                txtSearch.Text = "Search Template";
             }
         }
+
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InventorySystem"
         mc:Ignorable="d"
-        Title="Add Item" Height="386" Width="646" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True" Background="#FFC5B9B9" MouseDown="Window_MouseDown" Loaded="Window_Loaded" >
+        Title="Add Item" Height="386" Width="646" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Background="#FFC5B9B9" MouseDown="Window_MouseDown" Loaded="Window_Loaded" >
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -42,7 +42,7 @@
                     <TextBlock Text="Description:"/>
                     <TextBox x:Name="txtItemDescription" Height="104" Text="Description" LostFocus="txtItemDescription_LostFocus" GotFocus="txtItemDescription_GotFocus"/>
                 </StackPanel>
-                <Button Content="Add" BorderBrush="{x:Null}" Margin="268,28,54,73" Grid.Row="1" Click="Button_Click_1" />
+                <Button Content="Add" BorderBrush="{x:Null}" Margin="273,28,49,73" Grid.Row="1" Click="Button_Click_1" />
                 <Button Content="Cancel" BorderBrush="{x:Null}" Margin="184,28,137,73" Grid.Row="1" Click="Button_Click" />
             </Grid>
         </Grid>

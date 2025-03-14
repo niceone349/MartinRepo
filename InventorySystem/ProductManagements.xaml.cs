@@ -1,6 +1,10 @@
-﻿using System.Data;
-using System.Data.SqlClient;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
+using System.Data;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -14,15 +18,15 @@ using System.Windows.Shapes;
 namespace InventorySystem
 {
     /// <summary>
-    /// Interaction logic for ProductManagement.xaml
+    /// Interaction logic for ProductManagements.xaml
     /// </summary>
-    public partial class ProductManagement : Window
+    public partial class ProductManagements : Page
     {
-        public ProductManagement()
+        public ProductManagements()
         {
             InitializeComponent();
         }
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             string connectionString = Server.ConnString;
             string query = @"
@@ -47,7 +51,7 @@ namespace InventorySystem
                     {
                         if (DataGrid_Inventory.Columns.Count > 0)
                         {
-                            DataGrid_Inventory.Columns[0].Visibility = Visibility.Collapsed;
+                            DataGrid_Inventory.Columns[0].Visibility = Visibility.Hidden;
                         }
                     }, System.Windows.Threading.DispatcherPriority.Background);
 
@@ -59,7 +63,9 @@ namespace InventorySystem
                     MessageBox.Show("Error: " + ex.Message);
                 }
             }
+
         }
+
         //rename lang ng pangalan nung columns
         private void RenameDataGridColumns()
         {
@@ -121,9 +127,9 @@ namespace InventorySystem
 
                     Dispatcher.Invoke(() =>
                     {
-                        if (DataGrid_Inventory != null) 
+                        if (DataGrid_Inventory != null)
                         {
-                            DataGrid_Inventory.ItemsSource = defaultView; 
+                            DataGrid_Inventory.ItemsSource = defaultView;
 
                             if (DataGrid_Inventory.Columns.Count > 0)
                             {
@@ -148,20 +154,20 @@ namespace InventorySystem
             addItemWindow.ShowDialog();
 
         }
-        
+
         //Update item button
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             if (DataGrid_Inventory.SelectedItem is DataRowView selectedRow)
             {
-
                 int itemId = selectedRow["Item_ID"] != DBNull.Value ? Convert.ToInt32(selectedRow["Item_ID"]) : 0;
                 string itemName = selectedRow["Item_Name"]?.ToString() ?? "Unknown";
                 int quantity = selectedRow["Item_Quantity"] != DBNull.Value ? Convert.ToInt32(selectedRow["Item_Quantity"]) : 0;
                 int lowStock = selectedRow["Item_Low_Indicator"] != DBNull.Value ? Convert.ToInt32(selectedRow["Item_Low_Indicator"]) : 0;
                 string description = selectedRow["Item_Description"]?.ToString() ?? "No Description";
+                string categoryName = selectedRow["Category_Name"]?.ToString() ?? "Unknown";
 
-                UpdateItemPopUp updateWindow = new UpdateItemPopUp(itemId, itemName, quantity, lowStock, description);
+                UpdateItemPopUp updateWindow = new UpdateItemPopUp(itemId, itemName, quantity, lowStock, description, categoryName);
                 updateWindow.ItemUpdated += RefreshDataGrid;
                 updateWindow.ShowDialog();
             }
@@ -209,10 +215,17 @@ namespace InventorySystem
                 return;
             }
 
-            DataView dv = (DataGrid_Inventory.ItemsSource as DataView);
-            if (dv != null)
+            if (DataGrid_Inventory != null && DataGrid_Inventory.ItemsSource != null)
             {
-                dv.RowFilter = $"Item_Name LIKE '%{searchText}%' OR Item_Description LIKE '%{searchText}%'";
+                DataView dv = DataGrid_Inventory.ItemsSource as DataView;
+                if (dv != null)
+                {
+                    dv.RowFilter = $"Item_Name LIKE '%{searchText}%'";
+                }
+            }
+            else
+            {
+                MessageBox.Show("Inventory data is not loaded.");
             }
         }
         //search box outside click
@@ -228,5 +241,6 @@ namespace InventorySystem
         {
 
         }
+
     }
 }

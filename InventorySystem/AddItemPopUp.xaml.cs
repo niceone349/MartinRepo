@@ -1,7 +1,7 @@
 ﻿ 
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -176,10 +176,12 @@ namespace InventorySystem
                 });
             }
         }
+      
         public event Action ItemAdded;
         //ADD BUTTON HERE
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
+
 
             string itemName = txtItemName.Text.Trim();
             string category = cmbCategory.Text.Trim();
@@ -197,96 +199,13 @@ namespace InventorySystem
                 return;
             }
 
-
-            string connectionString = Server.ConnString;
-
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
+            AddItemExperimentPopUp additemexperimentpopup = new AddItemExperimentPopUp(itemName, category, description, quantity, lowStock);
+            additemexperimentpopup.ShowDialog();
 
 
-                    string categoryQuery = "SELECT Category_ID FROM Categories WHERE Category_Name = @Category";
-                    int categoryId = -1;
-
-                    using (SqlCommand categoryCmd = new SqlCommand(categoryQuery, conn))
-                    {
-                        categoryCmd.Parameters.AddWithValue("@Category", category);
-                        object categoryResult = categoryCmd.ExecuteScalar();
-
-                        if (categoryResult != null)
-                            categoryId = Convert.ToInt32(categoryResult);
-                    }
-
-                    if (categoryId == -1)
-                    {
-                        MessageBox.Show("Error: Selected category does not exist!", "Invalid Category", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
+            ItemAdded?.Invoke();
 
 
-                    string checkQuery = @"
-                                SELECT Item_ID, Item_Quantity FROM AvailableItems 
-                                WHERE Item_Name = @ItemName AND Item_Description = @Description";
-
-                    int existingItemId = -1;
-                    int existingQuantity = 0;
-
-                    using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
-                    {
-                        checkCmd.Parameters.AddWithValue("@ItemName", itemName);
-                        checkCmd.Parameters.AddWithValue("@Description", description);
-
-                        using (SqlDataReader reader = checkCmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                existingItemId = Convert.ToInt32(reader["Item_ID"]);
-                                existingQuantity = Convert.ToInt32(reader["Item_Quantity"]);
-                            }
-                        }
-                    }
-
-                    if (existingItemId != -1)
-                    {
-                        string updateQuery = "UPDATE AvailableItems SET Item_Quantity = @NewQuantity WHERE Item_ID = @ItemID";
-                        using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn))
-                        {
-                            updateCmd.Parameters.AddWithValue("@NewQuantity", existingQuantity + quantity);
-                            updateCmd.Parameters.AddWithValue("@ItemID", existingItemId);
-                            updateCmd.ExecuteNonQuery();
-                        }
-
-                        MessageBox.Show("Quantity updated!", "Updated", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    else
-                    {
-
-                        string insertQuery = @"
-                                    INSERT INTO AvailableItems (Item_Name, Item_Description, Category_ID, Item_Quantity, Item_Low_Indicator) 
-                                    VALUES (@ItemName, @Description, @CategoryID, @Quantity, @LowStock)";
-
-                        using (SqlCommand insertCmd = new SqlCommand(insertQuery, conn))
-                        {
-                            insertCmd.Parameters.AddWithValue("@ItemName", itemName);
-                            insertCmd.Parameters.AddWithValue("@Description", description);
-                            insertCmd.Parameters.AddWithValue("@CategoryID", categoryId);
-                            insertCmd.Parameters.AddWithValue("@Quantity", quantity);
-                            insertCmd.Parameters.AddWithValue("@LowStock", lowStock);
-                            insertCmd.ExecuteNonQuery();
-                        }
-
-                        MessageBox.Show("New item added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                }
-                ItemAdded?.Invoke();
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Database error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
 
         }
 

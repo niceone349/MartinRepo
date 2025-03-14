@@ -8,7 +8,7 @@ namespace InventorySystem
 {
     internal class Server
     {
-        public static string ConnString { get; } = "Data Source=DESKTOP-27RJDC1\\SQLEXPRESS;Database=InventorySystemdatabase;Integrated Security=True;";
+        public static string ConnString { get; } = "Data Source=NICEONE349\\SQLDATABASE;Database=Inventory System;Initial Catalog=Inventory System;Integrated Security=True;TrustServerCertificate=True;";
     }
 }
 

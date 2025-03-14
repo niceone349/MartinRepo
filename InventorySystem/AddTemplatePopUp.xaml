@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InventorySystem"
         mc:Ignorable="d"
-        Title="Add Item" Height="386" Width="646" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True" Background="#FFC5B9B9" Loaded="Window_Loaded" MouseDown="Window_MouseDown" >
+        Title="Add Template" Height="386" Width="646" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True" Background="#FFC5B9B9" Loaded="Window_Loaded" MouseDown="Window_MouseDown" >
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
