@@ -41,9 +41,9 @@
             <DataGrid x:Name="tblBorrow" Margin="52,40,454,211" ColumnWidth="*" Grid.Row="1" CanUserResizeColumns="False" CanUserReorderColumns="False" CanUserResizeRows="False" CanUserAddRows="False"/>
             <Button x:Name="deleteButton" Content="Delete Item" HorizontalAlignment="Left" Margin="234,389,0,0" VerticalAlignment="Top" Height="61" Width="150" Background="White" FontSize="18" Click="deleteButton_Click" Grid.Row="1"/>
             <Button x:Name="browseExperimentButton" Content="Browse" HorizontalAlignment="Left" Margin="389,389,0,0" VerticalAlignment="Top" Height="61" Width="123" Background="White" FontSize="18" Click="browseExperimentButton_Click" Grid.Row="1"/>
-            <Button x:Name="checkoutButton" Content="Checkout" HorizontalAlignment="Left" Margin="52,471,0,0" VerticalAlignment="Top" Height="80" Width="460" Background="White" FontSize="18" Click="checkoutButton_Click" Grid.Row="1"/>
+            <Button x:Name="checkoutButton" Content="Checkout" HorizontalAlignment="Left" Margin="52,493,0,0" VerticalAlignment="Top" Height="58" Width="460" Background="White" FontSize="18" Click="checkoutButton_Click" Grid.Row="1"/>
             <Label Content="Equipment Cart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="64" Width="380" FontSize="36" Foreground="White" FontWeight="Bold" Margin="48,84,0,0" Grid.RowSpan="2"/>
-            <StackPanel x:Name="experimentPanel" Grid.Row="1" Margin="526,40,30,29" Background="White">
+            <StackPanel x:Name="experimentPanel" Grid.Row="1" Margin="526,40,30,29" Background="White" Visibility="Collapsed">
                 <Button x:Name="returnButton" Content="Return" Width="64" Height="30" Margin="-320,15,0,0" Click="returnButton_Click"/>
                 <ComboBox x:Name="experimentComboBox" Width="200" Margin="0,-30,0,0" SelectionChanged="experimentComboBox_SelectionChanged" DisplayMemberPath="Experiment_Name"/>
                 <Button x:Name="experimentAddToCartButton" Content="Add To Cart" Width="80" Height="30" Margin="320,-30,0,0" Click="experimentAddToCartButton_Click"/>
@@ -54,7 +54,10 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </StackPanel>
+            <Label Content="Borrower Name:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="64" Width="380" FontSize="20" Foreground="White" FontWeight="Bold" Margin="47,450,0,0" Grid.Row="1"/>
         </Grid>
-        <Grid Grid.Column="1"/>
+        <Grid Grid.Column="1">
+            <TextBox x:Name="borrowerNameTextBox" HorizontalAlignment="Left" Margin="216,559,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="296" Height="26" FontSize="16"/>
+        </Grid>
     </Grid>
 </Window>

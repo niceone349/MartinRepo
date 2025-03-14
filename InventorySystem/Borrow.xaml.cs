@@ -148,8 +148,13 @@ namespace InventorySystem
                 try
                 {
                     conn.Open();
-
-                    string borrowerName = "Jon"; // Replace with actual user input
+                    //Borrower Name Logic
+                    if (string.IsNullOrWhiteSpace(borrowerNameTextBox.Text))
+                    {
+                        MessageBox.Show("Please enter a borrower name.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    string borrowerName = borrowerNameTextBox.Text;
                     DateTime borrowDate = DateTime.Now;
                     int activityID = GenerateActivityID();
 
@@ -250,9 +255,20 @@ namespace InventorySystem
                             insertCmd.Parameters.AddWithValue("@itemLowIndicator", itemLowIndicator);
                             insertCmd.ExecuteNonQuery();
                         }
+
+                        //Insert into Activity
+                        string activityQuery = "INSERT INTO ActivityLog (Activity_ID, Action) VALUES (@activityID, @action)";
+                        using (SqlCommand activitycmd = new SqlCommand(activityQuery, conn))
+                        {
+                            activitycmd.Parameters.AddWithValue("@activityID", activityID);
+                            activitycmd.Parameters.AddWithValue("@action", "Borrowed item");
+
+                        }
                     }
 
-                    MessageBox.Show("Checkout successful!");
+                    
+
+                        MessageBox.Show("Checkout successful!");
                     cartDataTable.Rows.Clear();
                     LoadEquipmentData();
                 }
@@ -353,6 +369,7 @@ namespace InventorySystem
         private void returnButton_Click(object sender, RoutedEventArgs e)
         {
             experimentPanel.Visibility = Visibility.Collapsed;
+            experimentDataTable.Rows.Clear();
         }
 
         private void experimentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
